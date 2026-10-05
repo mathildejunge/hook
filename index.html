@@ -1,292 +1,186 @@
-<!DOCTYPE html>
-<html lang="nb">
+<!doctype html>
+<html lang="no">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hook-generator</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bygg hook</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#000000; --panel:#0e0e0e; --panel2:#151515; --line:#2a2a2a;
-    --text:#ffffff; --muted:#9a9a9a; --pink:#ff66c4; --ink-on-pink:#000000;
+    --bg:#000; --card:#111; --card2:#181818; --line:#2a2a2a; --text:#fff; --muted:#a8a8a8;
+    --pink:#ff66c4; --pinkText:#000; --chip:#1c1c1c; --input:#161616;
   }
   :root[data-theme="light"]{
-    --bg:#ffffff; --panel:#ffffff; --panel2:#faf3f8; --line:#ead8e5;
-    --text:#1a1a1a; --muted:#6b6b6b; --pink:#d6248f; --ink-on-pink:#ffffff;
+    --bg:#fff; --card:#f7f7f7; --card2:#fff; --line:#e3e3e3; --text:#000; --muted:#5c5c5c;
+    --chip:#fff; --input:#fff;
   }
   *{box-sizing:border-box}
-  body{margin:0; background:var(--bg); color:var(--text); font-family:"Nunito Sans",system-ui,sans-serif; line-height:1.5; padding:20px 16px 80px}
-  .wrap{max-width:740px; margin:0 auto}
-
-  nav.switch{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:0 0 22px}
-  nav.switch a{font-family:"Oswald",sans-serif; font-weight:600; letter-spacing:1px; font-size:12px; text-transform:uppercase; text-decoration:none; color:var(--text); border:1px solid var(--line); border-radius:999px; padding:8px 16px; background:var(--panel)}
-  nav.switch a:hover{border-color:var(--pink); color:var(--pink)}
-  nav.switch a.current{background:var(--pink); color:var(--ink-on-pink); border-color:var(--pink)}
-
-  .pill{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:var(--panel2); border-radius:999px; padding:6px 14px; font-family:"Oswald",sans-serif; font-weight:600; letter-spacing:.8px; font-size:11px; text-transform:uppercase; color:var(--pink)}
-  .head{text-align:center; margin:0 0 22px}
-  h1{font-family:"Oswald",sans-serif; font-weight:700; letter-spacing:.5px; font-size:32px; margin:8px 0 8px}
-  h1 .g{color:var(--pink)}
-  .sub{color:var(--muted); font-size:15px; max-width:480px; margin:0 auto}
-
-  .topbar{display:flex; align-items:center; justify-content:flex-end; gap:8px; margin:0 0 14px}
-  .topbar .hint{color:var(--muted); font-size:12px; margin-right:auto}
-  .btn{font-family:"Oswald",sans-serif; font-weight:600; letter-spacing:.6px; font-size:12px; text-transform:uppercase; border:1px solid var(--line); background:var(--panel); color:var(--text); padding:8px 14px; border-radius:10px; cursor:pointer}
-
-  .panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin:0 0 16px}
-  .eyebrow{font-family:"Oswald",sans-serif; font-weight:700; letter-spacing:1.5px; font-size:11px; color:var(--pink); text-transform:uppercase; margin:0 0 6px}
-  .panel .desc{color:var(--muted); font-size:14px; margin:0 0 14px}
-
-  textarea.topic{width:100%; min-height:90px; border:1px solid var(--line); background:var(--panel2); color:var(--text); border-radius:12px; padding:13px 15px; font-family:"Nunito Sans",sans-serif; font-size:16px; resize:vertical}
-  textarea.topic:focus{outline:1px solid var(--pink)}
-  textarea.topic::placeholder{color:var(--muted)}
-  .modes{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 0}
-  .mode{font-family:"Nunito Sans",sans-serif; font-weight:600; font-size:14px; border:1px solid var(--line); background:var(--panel2); color:var(--text); padding:9px 16px; border-radius:999px; cursor:pointer}
-  .mode.on{background:var(--pink); color:var(--ink-on-pink); border-color:var(--pink)}
-  .gen{width:100%; margin:14px 0 0; border:0; background:var(--pink); color:var(--ink-on-pink); font-family:"Oswald",sans-serif; font-weight:700; letter-spacing:.8px; font-size:15px; text-transform:uppercase; padding:15px; border-radius:12px; cursor:pointer}
-  .gen:hover{filter:brightness(1.05)}
-
-  .field{margin:0 0 12px}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Outfit,system-ui,sans-serif;font-size:15px;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto;padding:16px 16px 60px}
+  nav.top{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:6px 0 26px}
+  nav.top a{font-family:Oswald,sans-serif;text-transform:uppercase;font-size:12px;letter-spacing:.04em;color:var(--text);text-decoration:none;padding:7px 13px;border-radius:999px;background:var(--chip);border:1px solid var(--line)}
+  nav.top a.on{background:var(--pink);color:#000;border-color:var(--pink)}
+  h1{font-family:Oswald,sans-serif;font-weight:700;font-size:30px;margin:0 0 4px}
+  .lead{color:var(--muted);margin:0 0 18px}
+  .bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .seg{display:inline-flex;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .seg button{border:0;background:transparent;color:var(--text);font-family:Oswald,sans-serif;text-transform:uppercase;font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer}
+  .seg button.on{background:var(--pink);color:#000}
+  .tools{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+  .btn{font-family:Oswald,sans-serif;text-transform:uppercase;font-size:12px;letter-spacing:.03em;border:1px solid var(--line);background:var(--chip);color:var(--text);padding:7px 12px;border-radius:8px;cursor:pointer}
+  .btn.pink{background:var(--pink);border-color:var(--pink);color:#000}
+  .btn.dark{background:#000;border-color:#000;color:#fff}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .lbl{font-family:Oswald,sans-serif;text-transform:uppercase;font-size:12px;letter-spacing:.06em;color:var(--pink);margin:0 0 2px}
+  .hint{color:var(--muted);font-size:13px;margin:0 0 10px}
+  .field{margin-bottom:14px}
   .field:last-child{margin-bottom:0}
-  .field label{display:block; font-family:"Oswald",sans-serif; font-weight:600; letter-spacing:.8px; font-size:11px; text-transform:uppercase; color:var(--pink); margin:0 0 5px}
-  .field .ex{color:var(--muted); font-weight:400; letter-spacing:0; text-transform:none; font-family:"Nunito Sans",sans-serif; font-size:12px}
-  .field input{width:100%; border:1px solid var(--line); background:var(--panel2); color:var(--text); border-radius:10px; padding:11px 12px; font-family:"Nunito Sans",sans-serif; font-size:15px}
-  .field input:focus{outline:1px solid var(--pink)}
-  .field input::placeholder{color:var(--muted)}
+  input[type=text]{width:100%;background:var(--input);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px 12px;font:inherit}
+  input[type=text]:focus{outline:2px solid var(--pink);outline-offset:0;border-color:transparent}
+  .opt{color:var(--muted);font-family:Outfit,sans-serif;text-transform:none;letter-spacing:0;font-size:12px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{border:1px solid var(--line);background:var(--chip);color:var(--text);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .chip.on{background:var(--pink);border-color:var(--pink);color:#000}
+  .ex{font-size:12px;color:var(--muted);margin-top:6px}
+  .ex b{color:var(--text);font-weight:500}
+  .list{display:grid;gap:8px}
+  .name{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;color:var(--text);font:inherit;width:100%}
+  .name:hover{border-color:var(--pink)}
+  .name.on{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink)}
+  .name .t{font-family:Oswald,sans-serif;font-weight:600;font-size:18px;line-height:1.25}
+  .name .m{font-size:11px;color:var(--muted);white-space:nowrap}
+  .name .m.long{color:var(--pink)}
+  .empty{color:var(--muted);font-size:14px;padding:6px 0}
+  .final{background:var(--pink);color:#000;border-radius:14px;padding:16px;margin-bottom:10px}
+  .final .lbl{color:#000}
+  .final input{background:transparent;border:0;border-bottom:1px solid rgba(0,0,0,.35);border-radius:0;color:#000;font-family:Oswald,sans-serif;font-weight:600;font-size:22px;padding:6px 0}
+  .final input:focus{outline:none;border-bottom-color:#000}
+  .final .row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:12px}
+  .saved{margin-top:10px;font-size:13px}
+  .tip{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+  @media (max-width:520px){ h1{font-size:25px} .name .t{font-size:16px} }
 
-  .cards{display:flex; flex-direction:column; gap:10px}
-  .card{border:1px solid var(--line); background:var(--panel2); border-radius:12px; padding:12px 14px}
-  .card .tag{font-family:"Oswald",sans-serif; font-weight:700; letter-spacing:1px; font-size:10px; text-transform:uppercase; color:var(--pink); margin:0 0 5px}
-  .card .row{display:flex; align-items:center; justify-content:space-between; gap:12px}
-  .card .txt{font-size:15px; line-height:1.4}
-  .card .why{color:var(--muted); font-size:12px; margin-top:4px}
-  .card .use{flex:0 0 auto; font-family:"Oswald",sans-serif; font-weight:600; letter-spacing:.5px; font-size:11px; text-transform:uppercase; border:1px solid var(--pink); background:transparent; color:var(--pink); padding:7px 12px; border-radius:8px; cursor:pointer}
-  .card .use:hover{background:var(--pink); color:var(--ink-on-pink)}
-  .empty{color:var(--muted); font-size:14px; text-align:center; padding:16px 0}
-
-  .finalwrap{background:var(--pink); border-radius:16px; padding:18px; color:var(--ink-on-pink); margin-top:4px}
-  .finalwrap .eyebrow{color:var(--ink-on-pink); opacity:.85}
-  .finalwrap label{display:block; font-family:"Oswald",sans-serif; font-weight:700; letter-spacing:.6px; font-size:11px; text-transform:uppercase; margin:14px 0 4px}
-  .finalwrap label:first-of-type{margin-top:4px}
-  .finalwrap input, .finalwrap textarea{width:100%; border:0; border-bottom:2px solid rgba(0,0,0,.25); background:transparent; color:var(--ink-on-pink); font-family:"Oswald",sans-serif; font-weight:700; font-size:19px; letter-spacing:.3px; padding:7px 0; resize:none}
-  .finalwrap textarea{font-family:"Nunito Sans",sans-serif; font-weight:600; font-size:16px; line-height:1.4}
-  .finalwrap input::placeholder, .finalwrap textarea::placeholder{color:rgba(0,0,0,.4); font-family:"Nunito Sans",sans-serif; font-weight:400; font-style:italic; font-size:15px; letter-spacing:0}
-  :root[data-theme="light"] .finalwrap input::placeholder, :root[data-theme="light"] .finalwrap textarea::placeholder{color:rgba(255,255,255,.7)}
-  .finalwrap input:focus, .finalwrap textarea:focus{outline:none}
-  .finalbar{display:flex; align-items:center; justify-content:flex-end; margin-top:14px}
-  .finalbar .save{font-family:"Oswald",sans-serif; font-weight:700; letter-spacing:.6px; font-size:12px; text-transform:uppercase; border:0; background:#000; color:#fff; padding:9px 16px; border-radius:10px; cursor:pointer}
-  :root[data-theme="light"] .finalbar .save{background:#fff; color:#1a1a1a}
-  .saved-note{font-size:13px; color:var(--pink); margin-top:10px; min-height:18px}
-  .tip{font-size:13px; color:var(--muted); margin:12px 2px 0; text-align:center}
-  .orline{text-align:center; color:var(--muted); font-family:"Oswald",sans-serif; font-weight:600; letter-spacing:1px; font-size:12px; text-transform:uppercase; margin:6px 0 16px}
+  textarea{width:100%;min-height:96px;resize:vertical;background:var(--input);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px 12px;font:inherit}
+  textarea:focus{outline:2px solid var(--pink);border-color:transparent}
+  .big{width:100%;padding:13px;font-size:15px;border-radius:10px;margin-top:14px}
+  .big:disabled{opacity:.6;cursor:wait}
+  .hook{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+  .hook .f{font-family:Oswald,sans-serif;text-transform:uppercase;font-size:11px;letter-spacing:.06em;color:var(--pink);margin:0 0 2px}
+  .hook .t{font-size:16px;line-height:1.4}
+  .copy{flex:none;border:1px solid var(--pink);background:transparent;color:var(--pink);font-family:Oswald,sans-serif;text-transform:uppercase;font-size:11px;padding:6px 10px;border-radius:7px;cursor:pointer}
+  .err{color:var(--pink);font-size:14px;margin-top:10px}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <nav class="switch">
+  <nav class="top">
     <a href="https://bygg.tech-utenkaos.no">Bygg challenge</a>
     <a href="https://navn.tech-utenkaos.no">Bygg navn</a>
-    <a class="current" href="https://hook.tech-utenkaos.no">Bygg hook</a>
+    <a href="https://hook.tech-utenkaos.no" class="on">Bygg hook</a>
     <a href="https://tracker.tech-utenkaos.no">Tracker</a>
   </nav>
 
-  <div class="head">
-    <span class="pill">✨ Basert på de største skaperne</span>
-    <h1>Hook<span class="g">-generator</span></h1>
-    <p class="sub">Formlene er bygget på det Hormozi, MrBeast og de største skaperne faktisk bruker. Lim inn temaet ditt for et kjapt sett, eller bygg hooken steg for steg lenger ned.</p>
-  </div>
+  <h1>Bygg hooken din</h1>
+  <p class="lead">Skriv hva innlegget ditt handler om, med dine egne ord. Du får 8 hooks bygget på formler som stopper scrollingen. Velg den som høres mest ut som deg, og pynt på den.</p>
 
-  <div class="topbar">
-    <span class="hint">Lagres automatisk</span>
-    <button class="btn" id="themeBtn">Lyst tema</button>
-    <button class="btn" id="resetBtn">Nullstill</button>
-  </div>
-
-  <!-- QUICK: LIM INN -->
-  <div class="panel">
-    <div class="eyebrow">Lim inn og generer</div>
-    <p class="desc">Skriv temaet ditt som et kort stikkord, så leser formlene best. Trykk «Generer».</p>
-    <textarea id="topic" class="topic" placeholder='F.eks. "din første challenge", "synlighet på Instagram", "AI for nybegynnere", "e-postmarkedsføring"...'></textarea>
-    <div class="modes" id="modes">
-      <button class="mode on" data-mode="innlegg">Innlegg og mail</button>
-      <button class="mode" data-mode="video">Reels og video</button>
+  <div class="bar">
+    <div class="seg" id="format">
+      <button data-v="post" class="on">Innlegg og mail</button>
+      <button data-v="video">Reels og video</button>
     </div>
-    <button class="gen" id="genBtn">Generer hooks</button>
-    <div class="cards" id="quickResults" style="margin-top:18px">
-      <div class="empty">Skriv inn temaet ditt over, og trykk «Generer hooks».</div>
+    <div class="tools">
+      <span>Lagres automatisk</span>
+      <button class="btn" id="theme">Lyst tema</button>
     </div>
   </div>
 
-  <div class="orline">Eller bygg den steg for steg</div>
-
-  <!-- BYGGEKLOSSER -->
-  <div class="panel">
-    <div class="eyebrow">Byggeklossene dine</div>
-    <p class="desc">Fyll inn de fem, så settes de inn i formlene under. Skriv kort og enkelt.</p>
-    <div class="field"><label>Hvem er den for? <span class="ex">f.eks. kvinnelige gründere</span></label><input id="f_who" type="text" placeholder="hvem snakker du til?" autocomplete="off"></div>
-    <div class="field"><label>Resultatet de får <span class="ex">f.eks. en ferdig challenge</span></label><input id="f_result" type="text" placeholder="hva sitter de igjen med?" autocomplete="off"></div>
-    <div class="field"><label>På hvor lang tid? <span class="ex">f.eks. 5 dager</span></label><input id="f_time" type="text" placeholder="tidsrammen" autocomplete="off"></div>
-    <div class="field"><label>Smerten de slipper <span class="ex">f.eks. teknisk kaos</span></label><input id="f_pain" type="text" placeholder="hva vil de bort fra?" autocomplete="off"></div>
-    <div class="field"><label>Hva er det? <span class="ex">f.eks. challenge, workshop, mini-serie</span></label><input id="f_format" type="text" placeholder="formatet" autocomplete="off"></div>
+  <div class="card">
+    <div class="field">
+      <p class="lbl">1 · Hva handler innlegget om?</p>
+      <p class="hint">En setning eller to holder. Skriv det sånn du ville sagt det til en venninne.</p>
+      <textarea id="tema" placeholder="f.eks. Det er ingen som ser all jobben du gjør bak skjermen"></textarea>
+    </div>
+    <div class="field">
+      <p class="lbl">2 · Hvem skriver du til? <span class="opt">valgfritt</span></p>
+      <input type="text" id="hvem" placeholder="f.eks. mammaer til nevrodivergente barn">
+    </div>
+    <button class="btn pink big" id="go">Lag hooks</button>
+    <div class="err" id="err"></div>
   </div>
 
-  <div class="panel">
-    <div class="eyebrow">Forslag til tittel</div>
-    <p class="desc">Korte titler som sier resultatet. Tapp «Bruk».</p>
-    <div class="cards" id="titleCards"></div>
+  <div class="card" id="resCard" style="display:none">
+    <p class="lbl">Hookene dine</p>
+    <p class="hint">Trykk Kopier på den du liker. Ikke fornøyd? Trykk Lag hooks igjen, så får du nye.</p>
+    <div class="list" id="list"></div>
   </div>
 
-  <div class="panel">
-    <div class="eyebrow">Hooks og åpningslinjer</div>
-    <p class="desc">Første linje i et innlegg, en reel eller en mail. Hver er bygget på en bevist formel.</p>
-    <div class="cards" id="hookCards"></div>
+  <div class="final">
+    <p class="lbl">✨ Hooken jeg går for</p>
+    <input type="text" id="final" placeholder="Lim inn eller skriv hooken din her">
+    <div class="row"><span id="count">0 tegn</span></div>
   </div>
-
-  <div class="panel">
-    <div class="eyebrow">Forslag til invitasjon</div>
-    <p class="desc">Linja som ber dem bli med. Tapp «Bruk».</p>
-    <div class="cards" id="inviteCards"></div>
-  </div>
-
-  <!-- FINAL -->
-  <div class="finalwrap">
-    <div class="eyebrow">✨ Dette går jeg for</div>
-    <label>Tittelen min</label>
-    <input id="finalTitle" type="text" placeholder="hent et forslag over, eller skriv ditt eget" autocomplete="off">
-    <label>Hooken og invitasjonen min</label>
-    <textarea id="finalInvite" rows="3" placeholder="hent et forslag over, eller skriv ditt eget"></textarea>
-    <div class="finalbar"><button class="save" id="saveBtn">Lagre</button></div>
-    <div class="saved-note" id="savedNote"></div>
-  </div>
-
-  <p class="tip">Les hooken høyt. Får den deg til å ville vite mer, funker den. Pynt på det siste så det høres ut som deg.</p>
-
+  <p class="tip">Tips: den beste hooken høres ut som deg, og får akkurat henne til å tenke «det er jo meg» 💗</p>
 </div>
 
 <script>
 (function(){
-  "use strict";
-  var KEY="tuk-hook-v2";
-  var state={ theme:"dark", topic:"", mode:"innlegg", who:"", result:"", time:"", pain:"", format:"", finalTitle:"", finalInvite:"" };
+  var KEY = 'tuk-hook-v2';
+  var state = { tema:'', hvem:'', final:'', format:'post', theme:'dark', hooks:[] };
+  try{ var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if(s){ for(var k in s) state[k] = s[k]; } }catch(e){}
+  function store(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 
-  function load(){ try{ var raw=localStorage.getItem(KEY); if(raw){ var s=JSON.parse(raw); if(s&&typeof s==="object") Object.assign(state,s); } }catch(e){} }
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
-  var el=function(id){return document.getElementById(id);};
-  function capFirst(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
-  function lc(s){ return s ? s.charAt(0).toLowerCase()+s.slice(1) : s; }
-  function val(key, ph){ var v=(state[key]||"").trim(); return v || ph; }
-
-  // ---------- QUICK (paste) ----------
-  function cleanTopic(raw){ return (raw||"").trim().replace(/[\.!\?]+$/,""); }
-  function tInnlegg(t){
-    return [
-      {tag:"Hormozi: uten offeret", x:"Sånn lykkes du med "+t+", uten å bli overveldet."},
-      {tag:"Hormozi: gi meg tid", x:"Gi meg fem minutter, så ser du "+t+" på en helt ny måte."},
-      {tag:"MrBeast: innsats og kontrast", x:"De fleste bruker år på "+t+". Her er snarveien."},
-      {tag:"Åpen loop", x:"Det er én ting ingen forteller deg om "+t+"."},
-      {tag:"Den kontrære", x:"Alt du har hørt om "+t+" er bare halve sannheten."},
-      {tag:"Feilen", x:"Den største feilen folk gjør med "+t+", og hvordan du slipper."},
-      {tag:"Du trenger ikke", x:"Du trenger ikke være ekspert for å få til "+t+"."},
-      {tag:"Future-pacing", x:"Tenk deg at "+t+" endelig føltes enkelt."},
-      {tag:"Historien", x:"Jeg prøvde "+t+" i 30 dager. Her er hva som skjedde."},
-      {tag:"Lista", x:"3 ting jeg skulle ønske noen sa til meg om "+t+"."},
-      {tag:"Spørsmålet", x:"Sliter du med "+t+"? Da er dette for deg."}
-    ];
-  }
-  function tVideo(t){
-    return [
-      {tag:"Stopp-hook", x:"Stopp. Dette om "+t+" endrer alt."},
-      {tag:"Ingen snakker om", x:"Ingen snakker om dette med "+t+"."},
-      {tag:"Rask verdi", x:capFirst(t)+", forklart på 15 sekunder."},
-      {tag:"Feilen", x:"Den største feilen med "+t+"."},
-      {tag:"Uten offeret", x:"Sånn får du til "+t+", uten stresset."},
-      {tag:"Cliffhanger", x:"Vent til du ser dette om "+t+"."},
-      {tag:"Lista", x:"3 ting om "+t+" du må vite."}
-    ];
-  }
-  function generateQuick(){
-    var t=cleanTopic(state.topic); var box=el("quickResults");
-    if(!t){ box.innerHTML='<div class="empty">Skriv inn temaet ditt over, og trykk «Generer hooks».</div>'; return; }
-    var tl=lc(t);
-    var list=(state.mode==="video")?tVideo(tl):tInnlegg(tl);
-    box.innerHTML="";
-    list.forEach(function(it){ box.appendChild(makeCard(it.x, it.tag, null, "finalInvite", true)); });
-  }
-
-  // ---------- STRUCTURED (building blocks) ----------
-  function parts(){ return { who:val("who","[hvem]"), result:val("result","[resultat]"), time:val("time","[tid]"), pain:val("pain","[smerte]"), format:val("format","[format]") }; }
-  function buildTitles(){ var p=parts(); return [
-    {x:capFirst(lc(p.result))+" på "+lc(p.time), tag:"Resultat og tid", why:"Lover et konkret resultat innen en tydelig frist."},
-    {x:capFirst(lc(p.result))+", uten "+lc(p.pain), tag:"Hormozi: uten offeret", why:"Resultatet de vil ha, uten det de frykter."},
-    {x:"Fra "+lc(p.pain)+" til "+lc(p.result), tag:"Fra, til", why:"Viser forvandlingen i fire ord."}
-  ]; }
-  function buildHooks(){ var p=parts(); return [
-    {x:"Sånn får du "+lc(p.result)+", uten "+lc(p.pain)+".", tag:"Hormozi: uten offeret", why:"Stort løfte, og du fjerner innvendingen i samme setning."},
-    {x:"Gi meg "+lc(p.time)+", så viser jeg deg hvordan du får "+lc(p.result)+".", tag:"Hormozi: gi meg tid", why:"Lav terskel, tydelig gevinst."},
-    {x:"De fleste bruker måneder på å få til "+lc(p.result)+". Jeg viser deg hvordan du gjør det på "+lc(p.time)+".", tag:"MrBeast: innsats og kontrast", why:"Spiller på tid og innsats, med en overraskende snarvei."},
-    {x:"Det er én ting som avgjør om du får "+lc(p.result)+". De fleste overser den.", tag:"Åpen loop", why:"Skaper et nysgjerrighetsgap hjernen vil lukke."},
-    {x:"Den virkelige grunnen til "+lc(p.pain)+", og hvordan du snur det på "+lc(p.time)+".", tag:"Den kontrære", why:"Lover en sannhet de ikke har hørt før."},
-    {x:"Du trenger ikke mye tech for å få "+lc(p.result)+". Her er sånn, på "+lc(p.time)+".", tag:"Du trenger ikke", why:"Fjerner den største unnskyldningen for ikke å starte."},
-    {x:"Tenk deg at du om "+lc(p.time)+" har "+lc(p.result)+", helt uten "+lc(p.pain)+".", tag:"Future-pacing", why:"Lar dem kjenne på resultatet før de har begynt."},
-    {x:"Lei av "+lc(p.pain)+"? Om "+lc(p.time)+" kan du ha "+lc(p.result)+" i stedet.", tag:"Spørsmål som treffer", why:"Kaller ut smerten, og gir et håp med frist."}
-  ]; }
-  function buildInvites(){ var p=parts(); return [
-    {x:"Bli med gratis, så lager vi "+lc(p.result)+" sammen på "+lc(p.time)+".", tag:"Invitasjon", why:"Gratis, konkret, og dere gjør det sammen."},
-    {x:"Vil du ha "+lc(p.result)+" uten "+lc(p.pain)+"? Bli med, det er gratis 💗", tag:"Invitasjon med spørsmål", why:"Ett ekte spørsmål, og en lav terskel til å si ja."}
-  ]; }
-
-  function makeCard(text, tag, why, target, copyMode){
-    var card=document.createElement("div"); card.className="card";
-    if(tag){ var tg=document.createElement("div"); tg.className="tag"; tg.textContent=tag; card.appendChild(tg); }
-    var row=document.createElement("div"); row.className="row";
-    var span=document.createElement("div"); span.className="txt"; span.textContent=text;
-    var btn=document.createElement("button"); btn.className="use"; btn.type="button";
-    btn.textContent = copyMode ? "Bruk" : "Bruk";
-    btn.addEventListener("click", function(){
-      state[target]=text; save(); renderFinal();
-      flash(target==="finalTitle" ? "Tittel hentet ned, juster den gjerne." : "Lagt inn nedenfor, juster den gjerne.");
-      try{ el("finalInvite").scrollIntoView({behavior:"smooth", block:"center"}); }catch(e){}
-    });
-    row.appendChild(span); row.appendChild(btn); card.appendChild(row);
-    if(why){ var w=document.createElement("div"); w.className="why"; w.textContent=why; card.appendChild(w); }
-    return card;
-  }
-
-  function renderStructured(){
-    var tc=el("titleCards"); tc.innerHTML=""; buildTitles().forEach(function(it){ tc.appendChild(makeCard(it.x, it.tag, it.why, "finalTitle")); });
-    var hc=el("hookCards"); hc.innerHTML=""; buildHooks().forEach(function(it){ hc.appendChild(makeCard(it.x, it.tag, it.why, "finalInvite")); });
-    var ic=el("inviteCards"); ic.innerHTML=""; buildInvites().forEach(function(it){ ic.appendChild(makeCard(it.x, it.tag, it.why, "finalInvite")); });
-  }
-
-  function renderInputs(){ el("f_who").value=state.who; el("f_result").value=state.result; el("f_time").value=state.time; el("f_pain").value=state.pain; el("f_format").value=state.format; }
-  function renderFinal(){ el("finalTitle").value=state.finalTitle||""; el("finalInvite").value=state.finalInvite||""; }
-  function renderTheme(){ document.documentElement.setAttribute("data-theme", state.theme); el("themeBtn").textContent=state.theme==="dark"?"Lyst tema":"Mørkt tema"; }
-  function renderModes(){ document.querySelectorAll("#modes .mode").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-mode")===state.mode); }); }
-  function flash(msg){ var n=el("savedNote"); n.textContent=msg; clearTimeout(n._t); n._t=setTimeout(function(){n.textContent="";},3500); }
-
-  function wire(){
-    el("topic").addEventListener("input", function(){ state.topic=this.value; save(); });
-    el("genBtn").addEventListener("click", generateQuick);
-    document.querySelectorAll("#modes .mode").forEach(function(b){ b.addEventListener("click", function(){ state.mode=this.getAttribute("data-mode"); save(); renderModes(); if(cleanTopic(state.topic)) generateQuick(); }); });
-    [["f_who","who"],["f_result","result"],["f_time","time"],["f_pain","pain"],["f_format","format"]].forEach(function(pr){ el(pr[0]).addEventListener("input", function(){ state[pr[1]]=this.value; save(); renderStructured(); }); });
-    el("finalTitle").addEventListener("input", function(){ state.finalTitle=this.value; save(); });
-    el("finalInvite").addEventListener("input", function(){ state.finalInvite=this.value; save(); });
-    el("saveBtn").addEventListener("click", function(){ save(); flash("Lagret. Du finner det her neste gang også."); });
-    el("themeBtn").addEventListener("click", function(){ state.theme=state.theme==="dark"?"light":"dark"; save(); renderTheme(); });
-    el("resetBtn").addEventListener("click", function(){
-      if(!confirm("Nullstille alt? Da tømmes temaet, byggeklossene og hooken din.")) return;
-      state.topic=state.who=state.result=state.time=state.pain=state.format=state.finalTitle=state.finalInvite="";
-      save(); el("topic").value=""; renderInputs(); renderStructured(); renderFinal(); generateQuick(); flash("Nullstilt.");
+  var list = document.getElementById('list');
+  function renderHooks(){
+    list.innerHTML = '';
+    document.getElementById('resCard').style.display = state.hooks.length ? '' : 'none';
+    state.hooks.forEach(function(h){
+      var d = document.createElement('div'); d.className = 'hook';
+      d.innerHTML = '<div><p class="f"></p><div class="t"></div></div><button class="copy">Kopier</button>';
+      d.querySelector('.f').textContent = h.formel;
+      d.querySelector('.t').textContent = h.tekst;
+      var b = d.querySelector('.copy');
+      b.addEventListener('click', function(){
+        state.final = h.tekst; document.getElementById('final').value = h.tekst; store(); count();
+        try{ navigator.clipboard.writeText(h.tekst); }catch(e){}
+        b.textContent = 'Kopiert ✓'; setTimeout(function(){ b.textContent = 'Kopier'; }, 1500);
+      });
+      list.appendChild(d);
     });
   }
+  function renderUi(){
+    document.querySelectorAll('#format button').forEach(function(x){ x.classList.toggle('on', x.dataset.v === state.format); });
+    document.documentElement.setAttribute('data-theme', state.theme);
+    document.getElementById('theme').textContent = state.theme === 'light' ? 'Mørkt tema' : 'Lyst tema';
+  }
+  function count(){ document.getElementById('count').textContent = (state.final || '').trim().length + ' tegn'; }
 
-  load(); wire();
-  renderTheme(); renderModes(); renderInputs(); renderStructured(); renderFinal();
-  el("topic").value=state.topic||"";
-  if(cleanTopic(state.topic)) generateQuick();
+  ['tema','hvem','final'].forEach(function(k){
+    var el = document.getElementById(k); el.value = state[k] || '';
+    el.addEventListener('input', function(){ state[k] = el.value; store(); if(k === 'final') count(); });
+  });
+  document.querySelectorAll('#format button').forEach(function(b){
+    b.addEventListener('click', function(){ state.format = b.dataset.v; store(); renderUi(); });
+  });
+  document.getElementById('theme').addEventListener('click', function(){ state.theme = state.theme === 'light' ? 'dark' : 'light'; store(); renderUi(); });
+
+  var go = document.getElementById('go'), err = document.getElementById('err');
+  go.addEventListener('click', async function(){
+    err.textContent = '';
+    if((state.tema || '').trim().length < 3){ err.textContent = 'Skriv litt om temaet ditt først 💗'; return; }
+    go.disabled = true; go.textContent = 'Lager hooks, et øyeblikk ...';
+    try{
+      var r = await fetch('/api/hooks', { method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ tema: state.tema, hvem: state.hvem, format: state.format }) });
+      var data = await r.json();
+      if(!r.ok || !data.hooks || !data.hooks.length){ err.textContent = (data && data.error) || 'Noe gikk galt, prøv igjen.'; }
+      else { state.hooks = data.hooks; store(); renderHooks(); document.getElementById('resCard').scrollIntoView({behavior:'smooth', block:'start'}); }
+    }catch(e){ err.textContent = 'Fikk ikke kontakt. Sjekk nettet og prøv igjen.'; }
+    go.disabled = false; go.textContent = 'Lag hooks';
+  });
+
+  renderUi(); renderHooks(); count();
 })();
 </script>
 </body>
