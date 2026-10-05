@@ -48,11 +48,38 @@ SPRÅK
 - Ikke lov noe innholdet ikke kan levere.
 - Ikke finn opp tall, resultater, kundehistorier eller bevis. Står det ikke et konkret resultat i temaet, velg en mekanisme som ikke trenger det. Skriver du i jeg-form, hold det så generelt at brukeren kan gjøre det til sitt.
 
-Svar KUN med de 8 hookene, én per linje, i dette formatet og ingenting annet:
-Mekanisme :: hooken
-Eksempel:
-Kontrær :: Du trenger færre verktøy enn du tror.
-Bruk det norske navnet på mekanismen.`;
+Lever de 8 hookene med verktøyet lever_hooks. Bruk det norske navnet på mekanismen i "formel".`;
+
+const TOOL = {
+  name: 'lever_hooks',
+  description: 'Leverer de ferdige hookene.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      hooks: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            formel: { type: 'string', description: 'Navnet på mekanismen, på norsk' },
+            tekst: { type: 'string', description: 'Selve hooken' }
+          },
+          required: ['formel', 'tekst']
+        }
+      }
+    },
+    required: ['hooks']
+  }
+};
+
+function clean(list) {
+  return list.map(function (h) {
+    return {
+      formel: String(h.formel || '').trim(),
+      tekst: String(h.tekst || '').replace(/^["«]|["»]$/g, '').replace(/\s*[–—]\s*/g, ', ').replace(/;/g, ',').trim()
+    };
+  }).filter(function (h) { return h.tekst; });
+}
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -95,7 +122,9 @@ module.exports = async function handler(req, res) {
         model: MODEL,
         max_tokens: 1500,
         system: SYSTEM,
-        messages: [{ role: 'user', content: userMsg }]
+        messages: [{ role: 'user', content: userMsg }],
+        tools: [TOOL],
+        tool_choice: { type: 'tool', name: 'lever_hooks' }
       })
     });
     const data = await r.json();
@@ -104,10 +133,16 @@ module.exports = async function handler(req, res) {
       res.status(502).json({ error: 'Klarte ikke lage hooks akkurat nå. Prøv igjen om litt.' });
       return;
     }
-    const text = (data.content || []).map(function (c) { return c.text || ''; }).join('');
-    const hooks = parseHooks(text);
+    const blocks = data.content || [];
+    const tool = blocks.find(function (c) { return c.type === 'tool_use'; });
+    let hooks = [];
+    if (tool && tool.input && Array.isArray(tool.input.hooks)) {
+      hooks = clean(tool.input.hooks);
+    }
+    const text = blocks.map(function (c) { return c.text || ''; }).join('');
+    if (!hooks.length) hooks = parseHooks(text);
     if (!hooks.length) {
-      console.error('Fant ingen hooks i svaret:', text);
+      console.error('Fant ingen hooks i svaret: ' + JSON.stringify(blocks).slice(0, 2000));
       res.status(502).json({ error: 'Klarte ikke lage hooks akkurat nå. Prøv igjen.' });
       return;
     }
@@ -136,10 +171,5 @@ function parseHooks(text) {
       (j && j.hooks || []).forEach(function (h) { out.push({ formel: String(h.formel || ''), tekst: String(h.tekst || '') }); });
     } catch (e) {}
   }
-  return out.map(function (h) {
-    return {
-      formel: h.formel,
-      tekst: h.tekst.replace(/^["«]|["»]$/g, '').replace(/\s*[–—]\s*/g, ', ').replace(/;/g, ',').trim()
-    };
-  }).filter(function (h) { return h.tekst; });
+  return clean(out);
 }
