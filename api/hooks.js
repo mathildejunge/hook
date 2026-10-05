@@ -48,9 +48,11 @@ SPRÅK
 - Ikke lov noe innholdet ikke kan levere.
 - Ikke finn opp tall, resultater, kundehistorier eller bevis. Står det ikke et konkret resultat i temaet, velg en mekanisme som ikke trenger det. Skriver du i jeg-form, hold det så generelt at brukeren kan gjøre det til sitt.
 
-Svar KUN med gyldig JSON, uten noe rundt, i dette formatet:
-{"hooks":[{"formel":"Kontrær","tekst":"..."}, ...]}
-Bruk det norske navnet på mekanismen i "formel".`;
+Svar KUN med de 8 hookene, én per linje, i dette formatet og ingenting annet:
+Mekanisme :: hooken
+Eksempel:
+Kontrær :: Du trenger færre verktøy enn du tror.
+Bruk det norske navnet på mekanismen.`;
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -103,17 +105,41 @@ module.exports = async function handler(req, res) {
       return;
     }
     const text = (data.content || []).map(function (c) { return c.text || ''; }).join('');
-    const m = text.match(/\{[\s\S]*\}/);
-    const parsed = m ? JSON.parse(m[0]) : { hooks: [] };
-    const hooks = (parsed.hooks || []).map(function (h) {
-      return {
-        formel: String(h.formel || ''),
-        tekst: String(h.tekst || '').replace(/\s*[–—]\s*/g, ', ').replace(/;/g, ',')
-      };
-    }).filter(function (h) { return h.tekst; });
-    res.status(200).json({ hooks: hooks });
+    const hooks = parseHooks(text);
+    if (!hooks.length) {
+      console.error('Fant ingen hooks i svaret:', text);
+      res.status(502).json({ error: 'Klarte ikke lage hooks akkurat nå. Prøv igjen.' });
+      return;
+    }
+    res.status(200).json({ hooks: hooks.slice(0, 8) });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Noe gikk galt. Prøv igjen om litt.' });
   }
 };
+
+function parseHooks(text) {
+  var out = [];
+  // Vanlig format: "Mekanisme :: hook"
+  text.split(/\r?\n/).forEach(function (line) {
+    var l = line.trim().replace(/^[-*\d.)\s]+/, '');
+    var i = l.indexOf('::');
+    if (i > 0) {
+      out.push({ formel: l.slice(0, i).trim().replace(/[*_]/g, ''), tekst: l.slice(i + 2).trim() });
+    }
+  });
+  // Reserve: hvis modellen likevel svarte med JSON
+  if (!out.length) {
+    try {
+      var m = text.match(/\{[\s\S]*\}/);
+      var j = m ? JSON.parse(m[0]) : null;
+      (j && j.hooks || []).forEach(function (h) { out.push({ formel: String(h.formel || ''), tekst: String(h.tekst || '') }); });
+    } catch (e) {}
+  }
+  return out.map(function (h) {
+    return {
+      formel: h.formel,
+      tekst: h.tekst.replace(/^["«]|["»]$/g, '').replace(/\s*[–—]\s*/g, ', ').replace(/;/g, ',').trim()
+    };
+  }).filter(function (h) { return h.tekst; });
+}
