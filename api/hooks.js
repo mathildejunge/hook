@@ -48,7 +48,7 @@ SPRÅK
 - Ikke lov noe innholdet ikke kan levere.
 - Ikke finn opp tall, resultater, kundehistorier eller bevis. Står det ikke et konkret resultat i temaet, velg en mekanisme som ikke trenger det. Skriver du i jeg-form, hold det så generelt at brukeren kan gjøre det til sitt.
 
-Lever de 8 hookene med verktøyet lever_hooks. Bruk det norske navnet på mekanismen i "formel".`;
+Lever ALLTID de 8 hookene ved å kalle verktøyet lever_hooks, og skriv ingenting annet. Bruk det norske navnet på mekanismen i "formel".`;
 
 const TOOL = {
   name: 'lever_hooks',
@@ -124,7 +124,7 @@ module.exports = async function handler(req, res) {
         system: SYSTEM,
         messages: [{ role: 'user', content: userMsg }],
         tools: [TOOL],
-        tool_choice: { type: 'tool', name: 'lever_hooks' }
+        tool_choice: { type: 'auto' }
       })
     });
     const data = await r.json();
@@ -169,7 +169,10 @@ function parseHooks(text) {
       var m = text.match(/\{[\s\S]*\}/);
       var j = m ? JSON.parse(m[0]) : null;
       (j && j.hooks || []).forEach(function (h) { out.push({ formel: String(h.formel || ''), tekst: String(h.tekst || '') }); });
-    } catch (e) {}
+    } catch (e) {
+      var re = /"formel"\s*:\s*"([^"]*)"\s*,\s*"tekst"\s*:\s*"([\s\S]*?)"\s*\}/g, mm;
+      while ((mm = re.exec(text))) out.push({ formel: mm[1], tekst: mm[2] });
+    }
   }
   return clean(out);
 }
