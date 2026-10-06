@@ -110,43 +110,56 @@ module.exports = async function handler(req, res) {
     (hvem ? 'Hvem jeg skriver til: ' + hvem + '\n' : '') +
     'Temaet mitt:\n' + tema;
 
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+  async function call(noThink) {
+    const payload = {
+      model: MODEL,
+      max_tokens: 3000,
+      system: SYSTEM,
+      messages: [{ role: 'user', content: userMsg }],
+      tools: [TOOL],
+      tool_choice: { type: 'auto' }
+    };
+    if (noThink) payload.thinking = { type: 'disabled' };
+    return fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         'x-api-key': key,
         'anthropic-version': '2023-06-01'
       },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1500,
-        system: SYSTEM,
-        messages: [{ role: 'user', content: userMsg }],
-        tools: [TOOL],
-        tool_choice: { type: 'auto' }
-      })
+      body: JSON.stringify(payload)
     });
+  }
+
+  async function ask() {
+    // Uten tenking går det mye raskere. Godtar ikke modellen det, prøver vi vanlig.
+    let r = await call(true);
+    if (r.status === 400) r = await call(false);
     const data = await r.json();
     if (!r.ok) {
       console.error('Anthropic-feil', r.status, JSON.stringify(data));
-      res.status(502).json({ error: 'Klarte ikke lage hooks akkurat nå. Prøv igjen om litt.' });
-      return;
+      return { feil: true };
     }
     const blocks = data.content || [];
     const tool = blocks.find(function (c) { return c.type === 'tool_use'; });
-    let hooks = [];
-    if (tool && tool.input && Array.isArray(tool.input.hooks)) {
-      hooks = clean(tool.input.hooks);
-    }
+    let raw = tool && tool.input ? tool.input.hooks : null;
+    if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch (e) { raw = null; } }
+    if (raw && !Array.isArray(raw) && Array.isArray(raw.hooks)) raw = raw.hooks;
+    let hooks = Array.isArray(raw) ? clean(raw) : [];
     const text = blocks.map(function (c) { return c.text || ''; }).join('');
     if (!hooks.length) hooks = parseHooks(text);
-    if (!hooks.length) {
-      console.error('Fant ingen hooks i svaret: ' + JSON.stringify(blocks).slice(0, 2000));
-      res.status(502).json({ error: 'Klarte ikke lage hooks akkurat nå. Prøv igjen.' });
+    if (!hooks.length) console.error('Fant ingen hooks (' + data.stop_reason + '): ' + JSON.stringify(blocks).slice(0, 1500));
+    return { hooks: hooks };
+  }
+
+  try {
+    let svar = await ask();
+    if (!svar.feil && !svar.hooks.length) svar = await ask(); // prøv én gang til
+    if (svar.feil || !svar.hooks.length) {
+      res.status(502).json({ error: 'Klarte ikke lage hooks akkurat nå. Trykk en gang til.' });
       return;
     }
-    res.status(200).json({ hooks: hooks.slice(0, 8) });
+    res.status(200).json({ hooks: svar.hooks.slice(0, 8) });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Noe gikk galt. Prøv igjen om litt.' });
